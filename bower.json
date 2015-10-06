@@ -1,0 +1,31 @@
+{
+  "name": "bdsDemo",
+  "version": "0.0.0",
+  "homepage": "https://github.com/availabs/bdsDemo",
+  "authors": [
+    "cakesofwrath <dai.alan.dai@gmail.com>"
+  ],
+  "description": "Data visualization for the BDS dataset",
+  "main": "app.js",
+  "moduleType": [
+    "amd",
+    "es6",
+    "globals",
+    "node"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "~3.3.5",
+    "leaflet": "~0.7.3",
+    "rangeslider.js": "~1.2.2",
+    "c3": "~0.4.10"
+  }
+}

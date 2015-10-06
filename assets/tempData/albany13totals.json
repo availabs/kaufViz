@@ -1,0 +1,4 @@
+{
+    "status": 500,
+    "responseText": "Error, must pass variable name, see documentation."
+}
