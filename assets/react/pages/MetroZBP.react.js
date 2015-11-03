@@ -10,7 +10,7 @@ var React = require("react"),
 	sunburst = require('../utils/viz/sunburstChart'),
 	colors = require('../utils/viz/colorScale'),
 
-	
+
 	//--data
 	naicsLib = require('../utils/data/naicsKey'),
 	metros = require('../utils/data/metroAreas').map(function(d){
@@ -23,7 +23,7 @@ var React = require("react"),
 	nf = new Intl.NumberFormat();
 
 var Header = React.createClass({
-	
+
 	getDefaultProps:function(){
 		return{
 			mapWidth:1200,
@@ -37,6 +37,7 @@ var Header = React.createClass({
 			type:'fips',
 			metroFips:'174',
 			year:'2013',
+            year2: '1998',
 			geo:{type:'FeatureCollection',features:[]},
 			data:[],
 			loading:true,
@@ -49,7 +50,7 @@ var Header = React.createClass({
 			}
 		}
 	},
-	
+
 	setMode:function(mode){
 		if(mode !== this.state.options.mode){
 			var newOptions = this.state.options;
@@ -70,27 +71,27 @@ var Header = React.createClass({
 	updateMetro:function(val){
 
 		console.log("Selected: " + val);
-		
+
 		this.setState({
 			metroFips:val,
 			data:[],
 			loading:true
-		});		
+		});
 		this.getMetroData(val);
 		d3.select("#zip_group").selectAll("path").remove(); // clear  map
-		
+
 	},
-	
+
 	updateYear:function(val){
-	
+
 		console.log("Selected: " + val);
 		this.setState({
 			data:[],
 			year:val,
 			loading:true
-		});		
+		});
 		this.getYearData();
-	
+
 	},
 
 	getYearData:function(){
@@ -98,21 +99,21 @@ var Header = React.createClass({
 			api = 'http://zbp.availabs.org/';
 
 		var fips  = {"type": "metro", "code": this.state.metroFips};
-		  
-		
+
+
 		d3.json(api+'/details')
 		.post(JSON.stringify({"fips":fips,"year":this.state.year}),function(err,response){
-	  		
-	  		var data = scope.getCircleArray(response.data);  	
+
+	  		var data = scope.getCircleArray(response.data);
 	  		sunburst.renderSunburst(data,scope.setNaics);
-		
+
 	  		scope.setState({
 	  			data:data,
 	  			loading:false,
 	  		});
 
 	  	});
-	
+
 	},
 
 	getMetroData:function(fipsCode){
@@ -120,24 +121,24 @@ var Header = React.createClass({
 			api = 'http://zbp.availabs.org';
 
 		var fips  = {"type": "metro", "code": fipsCode};
-		  
+
 		d3.json(api+'/details')
 		.post(JSON.stringify({"fips":fips,"year":this.state.year}),function(err,response){
-	  		var data = scope.getCircleArray(response.data);  	
+	  		var data = scope.getCircleArray(response.data);
 	  		scope.getGeography(fips,Object.keys(response.data),function(zips){
-	  		
+
 	  			map.renderGeography(zips,scope.props.mapWidth,scope.props.mapHeight);
 				sunburst.renderSunburst(data,scope.setNaics);
-		
+
 		  		scope.setState({
 		  			geo:zips,
 		  			data:data,
 		  			loading:false,
 		  		})
 	  		})
-	  	});	
+	  	});
 	},
-	
+
 
 	getLocalData:function(){
 
@@ -147,18 +148,18 @@ var Header = React.createClass({
 			geo = 'kcGeo.json';
 
 		d3.json( api+details , function(err,response){
-	  		var data = scope.getCircleArray(response.data);  	
+	  		var data = scope.getCircleArray(response.data);
 	  		d3.json(api+geo , function(zips){
-	  		
+
 	  			map.renderGeography(zips,scope.props.mapWidth,scope.props.mapHeight);
 				sunburst.renderSunburst(data,scope.setNaics);
-		
+
 		  		scope.setState({
 		  			geo:zips,
 		  			data:data
 		  		})
 	  		})
-	  	});	
+	  	});
 
 	},
 
@@ -172,21 +173,21 @@ var Header = React.createClass({
 	},
 
 
-	
+
 
 	getGeography:function(fips,zips,cb){
 
 		var api = api = 'http://zbp.availabs.org/';
 		d3.json(api+'/geozipcodes')
 			.post(JSON.stringify({"zips":zips}),function(err,zipsData){
-		  	
+
 		  	d3.json(api+'/geozipcodes')
 				.post(JSON.stringify({"fips":fips}),function(err,fipsData){
 
 					//console.log('fipsData',fipsData)
 					fipsData.features[0].properties.type='metro'
 					zipsData.features = zipsData.features.concat(fipsData.features)
-			  	
+
 			  	cb(zipsData)
 			});
 
@@ -220,7 +221,7 @@ var Header = React.createClass({
 		var flat1 = [],
 			flat2 = [],
 			flat3 = [];
-		
+
 		flat1 = flat1.concat.apply(flat1, circleArray);
 		flat2 = flat2.concat.apply(flat2, flat1);
 
@@ -231,7 +232,7 @@ var Header = React.createClass({
 			}
 			return output;
 		})
-		
+
 		flat3 = flat3.concat.apply(flat2, circleArray);
 
 		circleArray = flat3.filter(function(d){
@@ -248,12 +249,12 @@ var Header = React.createClass({
 		return circleArray;
 	},
 
-	
+
 
 	componentDidUpdate:function(nextProps,nextState){
-		
+
 		bubble.renderBubbleChart(this.state.data,this.props.mapWidth,this.props.mapHeight,map.centroids,this.state.options);
-		
+
 	},
 
 	renderIndustryAnalysis:function(){
@@ -277,7 +278,7 @@ var Header = React.createClass({
 			var filterData = scope.state.data.filter(function(d){
 				return d.cluster === scope.state.options.naics.code;
 			})
-				
+
 			indCount = filterData.length;
 			indEmp = filterData.reduce(function(a,b){ return parseInt(a) + parseInt(b.radius) },0);
 			indCountPer = Math.round((indCount / estCount)*100);
@@ -297,16 +298,16 @@ var Header = React.createClass({
 			indEmp = filterData.reduce(function(a,b){ return parseInt(a) + parseInt(b.radius) },0);
 			indCountPer = Math.round((indCount / estCount)*100);
 			indEmpPer = Math.round((indEmp / estEmp)*100);
-		
+
 		}
-		
+
 		return (
 				<div>
 					<div className='row'>
 						<div className='col-xs-4' style={{textAlign:'center',padding:6,fontSize:14}}>
 							<strong>Establishments</strong>
 						</div>
-	
+
 						<div className='col-xs-4' style={{textAlign:'center',padding:6,fontSize:14}}>
 							{nf.format(indCount)}
 						</div>
@@ -344,7 +345,7 @@ var Header = React.createClass({
 			estEmp = this.state.data.reduce(function(a,b){ return parseInt(a) + parseInt(b.radius) },0)
 			console.log('empEst', estEmp)
 		}
-			
+
 
 		return (
 			<div className='col-md-12'>
@@ -429,7 +430,7 @@ var Header = React.createClass({
 	},
 
 	render:function(){
-		
+
 		var loading = (
 			<div style={{position:'fixed',top:'50%',left:'50%'}}>
 			 <Loading type='balls' color='#e3e3e3'  />
@@ -463,14 +464,14 @@ var Header = React.createClass({
 			            {loading}
 			            <svg id='circles' style={{width:this.props.mapWidth,height:this.props.mapHeight}} >
 			            	<g id='circle_group' />
-			            	<g id='zip_group' />			            	
+			            	<g id='zip_group' />
 			            </svg>
 
 			           	<div style={{position: 'fixed','top': 100,'left':40,width:330}}>
 			           		<div className='row'>
-			           			
+
 					           	{this.renderControls()}
-								
+
 								{this.renderSunburst()}
 			            	</div>
 			            </div>
