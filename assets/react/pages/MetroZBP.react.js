@@ -21,7 +21,7 @@ var React = require("react"),
     centroids = [],
     nf = new Intl.NumberFormat();
 
-require("d3.promise");
+require("../d3.promise");
 
 var Header = React.createClass({
     getDefaultProps() {
@@ -42,6 +42,7 @@ var Header = React.createClass({
                 features: []
             },
             data: [],
+            data2: [],
             loading: true,
             options: {
                 mode: "cluster",
@@ -109,20 +110,16 @@ var Header = React.createClass({
                 "code": this.state.metroFips
             };
 
-        let getDetails = d3.promise.json(api + "/details").post(JSON.stringify({
-            fips,
-            "year": this.state.year
-        }));
-        getDetails.then((res) => {
-            var data = scope.getCircleArray(res.data);
-            sunburst.renderSunburst(data, scope.setNaics);
+        d3.json(api+'/details')
+        .post(JSON.stringify({"fips":fips,"year":this.state.year}),function(err,response){
+
+            var data = scope.getCircleArray(response.data);
+            sunburst.renderSunburst(data,scope.setNaics);
 
             scope.setState({
-                data,
-                loading: false
+                data:data,
+                loading:false,
             });
-        },
-        (err) => {
 
         });
     },
@@ -133,26 +130,21 @@ var Header = React.createClass({
 
         let fips = { "type": "metro", "code": fipsCode };
 
-        let getData = d3.promise.json(api + "/details").post(JSON.stringify({
-            "type": "metro",
-            "code": fipsCode
-        }));
+        d3.json(api+'/details')
+        .post(JSON.stringify({"fips":fips,"year":this.state.year}),function(err,response){
+            var data = scope.getCircleArray(response.data);
+            scope.getGeography(fips,Object.keys(response.data),function(zips){
 
-        getData.then((res) => {
-            let data = scope.getCircleArray(res.data);
-
-            scope.getGeography(fips, Object.keys(response.data), (zips) => {
-                map.renderGeography(zips, scope.props.mapWidth, scope.props.mapHeight);
-                sunburst.renderSunburst(data, scope);
+                map.renderGeography(zips,scope.props.mapWidth,scope.props.mapHeight);
+                sunburst.renderSunburst(data,scope.setNaics);
 
                 scope.setState({
-                    geo: zips,
-                    data,
-                    loading: false
-                });
+                    geo:zips,
+                    data:data,
+                    loading:false,
+                })
             })
-
-        })
+        });
     },
 
     getLocalData() {
@@ -160,27 +152,47 @@ var Header = React.createClass({
     },
 
     componentDidMount() {
+        var scope = this,
+            api = "http://zbp.availabs.org",
+
+            fips = {
+                "type": "metro",
+                "code": this.state.metroFips
+            };
+
+        d3.json(api+'/details')
+        .post(JSON.stringify({"fips":fips,"year":this.state.year2}),function(err,response){
+
+            var data2 = scope.getCircleArray(response.data);
+            // sunburst.renderSunburst(data,scope.setNaics);
+
+            scope.setState({
+                data2,
+                loading: false,
+            });
+
+            console.log("data2", data2);
+        });
         this.getMetroData(this.state.metroFips);
-        buble.drawLegends();
+        bubble.drawLegends();
     },
 
     getGeography(fips, zips, cb) {
         let api = "http://zbp.availabs.org";
-        let getZips = d3.promise.json(api + "/geozipcodes").post(JSON.stringify({
-            zips
-        }));
-        let getFips = d3.promise.json(api + "/geozipcodes").post(JSON.stringify({
-            fips
-        }));
+        d3.json(api+'/geozipcodes')
+            .post(JSON.stringify({"zips":zips}),function(err,zipsData){
 
-        getZips.then((zipsData) => {
-            getFips.then((fipsData) => {
-                fipsData.features[0].properties.type="metro"
-                zipsData.features = zipsData.features.concat(fipsData.features)
+            d3.json(api+'/geozipcodes')
+                .post(JSON.stringify({"fips":fips}),function(err,fipsData){
+
+                    //console.log('fipsData',fipsData)
+                    fipsData.features[0].properties.type='metro'
+                    zipsData.features = zipsData.features.concat(fipsData.features)
 
                 cb(zipsData)
             });
-        });
+
+        })
     },
 
     getCircleArray(data) {
@@ -251,7 +263,6 @@ var Header = React.createClass({
             indCountPer = 0,
             indEmpPer = 0;
 
-
         if(this.state.options.naics.depth === 0){
             return <span />
         }
@@ -260,12 +271,20 @@ var Header = React.createClass({
             let estCount = this.state.data.length,
                 estEmp = this.state.data.reduce((a,b) => { return parseInt(a) + parseInt(b.radius) },0);
 
-            let filterData = scope.state.data.filter((d){
+            let filterData = scope.state.data.filter((d) => {
                 return d.cluster === scope.state.options.naics.code;
             })
 
-            indCount = filterData.length;
-            indEmp = filterData.reduce((a,b) => { return parseInt(a) + parseInt(b.radius) },0);
+            let filterData2 = scope.state.data2.filter((d) => {
+                return d.cluster === scope.state.options.naics.code;
+            });
+
+            indCount = Math.abs(filterData.length - filterData2.length);
+            indEmp = filterData.reduce((a, b) => {
+                return (parseInt(a) + parseInt(b.radius));
+            },0) - filterData2.reduce((a, b) => {
+                return (parseInt(a) + parseInt(b.radius));
+            },0);
             indCountPer = Math.round((indCount / estCount)*100);
             indEmpPer = Math.round((indEmp / estEmp)*100);
 
@@ -279,8 +298,16 @@ var Header = React.createClass({
                 return d.naics.substr(0,scope.state.options.naics.code.length) === scope.state.options.naics.code;
             });
 
-            indCount = filterData.length;
-            indEmp = filterData.reduce((a,b) => { return parseInt(a) + parseInt(b.radius) },0);
+            let filterData2 = scope.state.data2.filter((d) => {
+                return d.naics.substr(0,scope.state.options.naics.code.length) === scope.state.options.naics.code;
+            });
+
+            indCount = filterData.length - filterData2.length;
+            indEmp = filterData.reduce((a, b) => {
+                return (parseInt(a) + parseInt(b.radius));
+            },0) - filterData2.reduce((a, b) => {
+                return (parseInt(a) + parseInt(b.radius));
+            },0);
             indCountPer = Math.round((indCount / estCount)*100);
             indEmpPer = Math.round((indEmp / estEmp)*100);
 
@@ -415,7 +442,7 @@ var Header = React.createClass({
     },
 
     render:function(){
-
+        console.log(this.state);
         let loading = (
             <div style={{position:"fixed",top:"50%",left:"50%"}}>
              <Loading type="balls" color="#e3e3e3"  />
