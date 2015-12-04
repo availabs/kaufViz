@@ -117,7 +117,11 @@ var Header = React.createClass({
             sunburst.renderSunburst(data,scope.setNaics);
 
             scope.setState({
-                data:data,
+                dataEstEmp: data.reduce((a,b) => { return parseInt(a) + parseInt(b.radius) },0)
+            });
+
+            scope.setState({
+                data,
                 loading:false,
             });
 
@@ -140,9 +144,12 @@ var Header = React.createClass({
 
                 scope.setState({
                     geo:zips,
-                    data:data,
+                    data,
                     loading:false,
-                })
+                });
+                scope.setState({
+                    dataEstEmp: data.reduce((a,b) => { return parseInt(a) + parseInt(b.radius) },0)
+                });
             })
         });
     },
@@ -170,8 +177,11 @@ var Header = React.createClass({
                 data2,
                 loading: false,
             });
+            scope.setState({
+                data2EstEmp: data2.reduce((a,b) => { return parseInt(a) + parseInt(b.radius) },0)
+            });
 
-            console.log("data2", data2);
+            // console.log("data2", data2);
         });
         this.getMetroData(this.state.metroFips);
         bubble.drawLegends();
@@ -256,17 +266,21 @@ var Header = React.createClass({
 
     renderIndustryAnalysis() {
         let scope = this,
-            estCount = 0,
-            estEmp = 0,
-            indCount = 0,
-            indEmp = 0,
-            indCountPer = 0,
-            indEmpPer = 0;
+            estCounts = {},
+            estEmps = {},
+            indCounts = {},
+            indEmp = {},
+            indCountPer = {},
+            indEmpPer = {};
 
         if(this.state.options.naics.depth === 0){
             return <span />
         }
         else if(this.state.options.naics.depth === 1){
+            estCounts[this.state.year] = this.state.data.length;
+            estCounts[this.state.year2] = this.state.data2.length; // TODO: SIMPLY MAKE THIS LIKE THE RENDERCONTROLS() FUNCTION
+            // SO DISPLAY THE DATA IN YR TABLE
+            estEmps[this.state.year] = this.state.data.reduce((a,b) => { return parseInt(a) + parseInt(b.radius) }, 0);
 
             let estCount = this.state.data.length,
                 estEmp = this.state.data.reduce((a,b) => { return parseInt(a) + parseInt(b.radius) },0);
@@ -312,29 +326,29 @@ var Header = React.createClass({
             indEmpPer = Math.round((indEmp / estEmp)*100);
 
         }
-
+        let style14 = {textAlign:"center",padding:6,fontSize:14};
         return (
                 <div>
                     <div className="row">
-                        <div className="col-xs-4" style={{textAlign:"center",padding:6,fontSize:14}}>
+                        <div className="col-xs-4" style={style14}>
                             <strong>Establishments</strong>
                         </div>
 
-                        <div className="col-xs-4" style={{textAlign:"center",padding:6,fontSize:14}}>
+                        <div className="col-xs-4" style={style14}>
                             {nf.format(indCount)}
                         </div>
-                        <div className="col-xs-4" style={{textAlign:"center",padding:6,fontSize:14}}>
+                        <div className="col-xs-4" style={style14}>
                             {nf.format(indCountPer)}%
                         </div>
                     </div>
                     <div className="row">
-                        <div className="col-xs-4" style={{textAlign:"center",padding:6,fontSize:14}}>
+                        <div className="col-xs-4" style={style14}>
                             <strong>Employment</strong>
                         </div>
-                        <div className="col-xs-4" style={{textAlign:"center",padding:6,fontSize:14}}>
+                        <div className="col-xs-4" style={style14}>
                             {nf.format(indEmp)}
                         </div>
-                        <div className="col-xs-4" style={{textAlign:"center",padding:6,fontSize:14}}>
+                        <div className="col-xs-4" style={style14}>
                             {nf.format(indEmpPer)}%
                         </div>
                     </div>
@@ -346,19 +360,27 @@ var Header = React.createClass({
     renderControls() {
 
         let zipcodeCount = "",
-            estCount = "",
-            estEmp = "",
+            estCounts = {},
+            estEmps = {},
             cluster =  this.state.options.mode === "cluster" ? " active" : "",
             zips =  this.state.options.mode === "zips" ? " active" : "";
 
         if(this.state.data.length > 0){
-            zipcodeCount = this.state.geo.features.length -1,
-            estCount = this.state.data.length,
+            zipcodeCount = this.state.geo.features.length - 1;
+            estCounts[this.state.year] = this.state.data.length;
+            estEmps[this.state.year] = this.state.data.reduce((a,b) => { return parseInt(a) + parseInt(b.radius) },0);
+            estCounts[this.state.year2] = this.state.data2.length;
+            estEmps[this.state.year2] = this.state.data2.reduce((a,b) => { return parseInt(a) + parseInt(b.radius) },0);
+            /*estCount = this.state.data.length,
             estEmp = this.state.data.reduce((a,b) => { return parseInt(a) + parseInt(b.radius) },0)
-            console.log("empEst", estEmp)
+            console.log("empEst", estEmp)*/
+        }
+        else {
+            estCounts[this.state.year] = 0;
+            estCounts[this.state.year2] = 0;
         }
 
-
+        let style14 = {textAlign:"center",padding:6,fontSize:14 }
         return (
             <div className="col-md-12">
                 <div className="row">
@@ -375,10 +397,10 @@ var Header = React.createClass({
                     </div>
                 </div>
                 <div className="row">
-                    <div className="col-xs-4" style={{textAlign:"center",padding:6,fontSize:14}}>
+                    <div className="col-xs-4" style={style14}>
                         <strong>Year</strong>
                     </div>
-                    <div className="col-xs-8" style={{textAlign:"center",padding:6,fontSize:14}}>
+                    <div className="col-xs-8" style={style14}>
                         <SelectBox
                             name="datayear"
                             value={this.state.year}
@@ -387,27 +409,43 @@ var Header = React.createClass({
                     </div>
                 </div>
                 <div className="row">
-                    <div className="col-xs-4" style={{textAlign:"center",padding:6,fontSize:14}}>
+                    <div className="col-xs-4" style={style14}>
                         <strong># Zipcodes</strong>
                     </div>
-                    <div className="col-xs-8" style={{textAlign:"center",padding:6,fontSize:14}}>
+                    <div className="col-xs-8" style={style14}>
                         {nf.format(zipcodeCount)}
                     </div>
                 </div>
                 <div className="row">
-                    <div className="col-xs-4" style={{textAlign:"center",padding:6,fontSize:14}}>
+                    <div className="col-xs-4" style={style14}>
                         <strong>Establishments</strong>
                     </div>
-                    <div className="col-xs-8" style={{textAlign:"center",padding:6,fontSize:14}}>
-                        {nf.format(estCount)}
+                    <div className="col-xs-8" style={style14}>
+                        {nf.format(estCounts[this.state.year])}
+                    </div>
+                    <div className="col-xs-12" style={style14}>
+                        <table className="table">
+                            <caption><strong>Establishments</strong></caption>
+                            <tr><th>{this.state.year2}</th><th>{this.state.year}</th><th>Change</th></tr>
+                            <tr>
+                                <td>{nf.format(estCounts[this.state.year2])}</td>
+                                <td>{nf.format(estCounts[this.state.year])}</td>
+                                <td>{nf.format(estCounts[this.state.year] - estCounts[this.state.year2])}</td>
+                            </tr>
+                        </table>
                     </div>
                 </div>
                 <div className="row">
-                    <div className="col-xs-4" style={{textAlign:"center",padding:6,fontSize:14}}>
-                        <strong>~Employment</strong>
-                    </div>
-                    <div className="col-xs-8" style={{textAlign:"center",padding:6,fontSize:14}}>
-                        {nf.format(estEmp)}
+                    <div className="col-xs-12" style={style14}>
+                        <table className="table">
+                            <caption><strong>Employment</strong></caption>
+                            <tr><th>{this.state.year2}</th><th>{this.state.year}</th><th>Change</th></tr>
+                            <tr>
+                                <td>{nf.format(estEmps[this.state.year2])}</td>
+                                <td>{nf.format(estEmps[this.state.year])}</td>
+                                <td>{nf.format(estEmps[this.state.year] - estEmps[this.state.year2])}</td>
+                            </tr>
+                        </table>
                     </div>
                 </div>
                 <div className="row">
