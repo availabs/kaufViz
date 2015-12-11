@@ -269,7 +269,7 @@ var Header = React.createClass({
             estCounts = {},
             estEmps = {},
             indCounts = {},
-            indEmp = {},
+            indEmps = {},
             indCountPer = {},
             indEmpPer = {};
 
@@ -281,32 +281,48 @@ var Header = React.createClass({
             estCounts[this.state.year2] = this.state.data2.length; // TODO: SIMPLY MAKE THIS LIKE THE RENDERCONTROLS() FUNCTION
             // SO DISPLAY THE DATA IN YR TABLE
             estEmps[this.state.year] = this.state.data.reduce((a,b) => { return parseInt(a) + parseInt(b.radius) }, 0);
+            estEmps[this.state.year2] = this.state.data2.reduce((a, b) => {return parseInt(a), parseInt(b.readius)}, 0);
 
-            let estCount = this.state.data.length,
-                estEmp = this.state.data.reduce((a,b) => { return parseInt(a) + parseInt(b.radius) },0);
+            // let estCount = this.state.data.length,
+            //     estEmp = this.state.data.reduce((a,b) => { return parseInt(a) + parseInt(b.radius) },0);
 
             let filterData = scope.state.data.filter((d) => {
                 return d.cluster === scope.state.options.naics.code;
-            })
+            });
 
             let filterData2 = scope.state.data2.filter((d) => {
                 return d.cluster === scope.state.options.naics.code;
             });
 
-            indCount = Math.abs(filterData.length - filterData2.length);
-            indEmp = filterData.reduce((a, b) => {
+            // indCount = Math.abs(filterData.length - filterData2.length);
+            indCounts[this.state.year] = filterData.length;
+            indCounts[this.state.year2] = filterData2.length;
+
+            indEmps[this.state.year] = filterData.reduce((a, b) => {
+                return (parseInt(a) + parseInt(b.radius));
+            }, 0);
+
+            indEmps[this.state.year2] = filterData2.reduce((a, b) => {
+                return (parseInt(a) + parseInt(b.radius));
+            }, 0);
+            /*indEmp = filterData.reduce((a, b) => {
                 return (parseInt(a) + parseInt(b.radius));
             },0) - filterData2.reduce((a, b) => {
                 return (parseInt(a) + parseInt(b.radius));
-            },0);
-            indCountPer = Math.round((indCount / estCount)*100);
-            indEmpPer = Math.round((indEmp / estEmp)*100);
-
+            },0);*/
+            indCountPer[this.state.year] = Math.round((indCounts[this.state.year] / estCounts[this.state.year])*100);
+            indCountPer[this.state.year] = Math.round((indCounts[this.state.year2] / estCounts[this.state.year2])*100);
+            // indEmpPer = Math.round((indEmp / estEmp)*100);
+            indEmpPer[this.state.year] = Math.round((indEmps[this.state.year] / estEmps[this.state.year]) * 100);
+            indEmpPer[this.state.year2] = Math.round((indEmps[this.state.year2] / estEmps[this.state.year2]) * 100);
         }
-        else if(this.state.options.naics.depth > 1){
+        else if(this.state.options.naics.depth > 1){ // CHANGE
 
-            estCount = this.state.data.length;
-            estEmp = this.state.data.reduce((a,b) => { return parseInt(a) + parseInt(b.radius) },0);
+            estCounts[this.state.year] = this.state.data.length;
+            estCounts[this.state.year2] = this.state.data2.length;
+
+            estEmps[this.state.year] = this.state.data.reduce((a,b) => { return parseInt(a) + parseInt(b.radius) }, 0);
+            estEmps[this.state.year2] = this.state.data2.reduce((a, b) => {return parseInt(a), parseInt(b.readius)}, 0);
 
             let filterData = scope.state.data.filter((d) => {
                 return d.naics.substr(0,scope.state.options.naics.code.length) === scope.state.options.naics.code;
@@ -316,40 +332,51 @@ var Header = React.createClass({
                 return d.naics.substr(0,scope.state.options.naics.code.length) === scope.state.options.naics.code;
             });
 
-            indCount = filterData.length - filterData2.length;
-            indEmp = filterData.reduce((a, b) => {
+            indCounts[this.state.year] = filterData.length;
+            indCounts[this.state.year2] = filterData2.length;
+
+            indEmps[this.state.year] = filterData.reduce((a, b) => {
                 return (parseInt(a) + parseInt(b.radius));
-            },0) - filterData2.reduce((a, b) => {
+            }, 0);
+
+            indEmps[this.state.year2] = filterData2.reduce((a, b) => {
                 return (parseInt(a) + parseInt(b.radius));
-            },0);
-            indCountPer = Math.round((indCount / estCount)*100);
-            indEmpPer = Math.round((indEmp / estEmp)*100);
+            }, 0);
+
+            indCountPer[this.state.year] = Math.round((indCounts[this.state.year] / estCounts[this.state.year])*100);
+            indCountPer[this.state.year2] = Math.round((indCounts[this.state.year2] / estCounts[this.state.year2])*100);
+            // indEmpPer = Math.round((indEmp / estEmp)*100);
+            indEmpPer[this.state.year] = Math.round((indEmps[this.state.year] / estEmps[this.state.year]) * 100);
+            indEmpPer[this.state.year2] = Math.round((indEmps[this.state.year2] / estEmps[this.state.year2]) * 100);
 
         }
         let style14 = {textAlign:"center",padding:6,fontSize:14};
         return (
                 <div>
                     <div className="row">
-                        <div className="col-xs-4" style={style14}>
-                            <strong>Establishments</strong>
-                        </div>
-
-                        <div className="col-xs-4" style={style14}>
-                            {nf.format(indCount)}
-                        </div>
-                        <div className="col-xs-4" style={style14}>
-                            {nf.format(indCountPer)}%
+                        <div className="col-xs-12" style={style14}>
+                            <table className="table">
+                                <caption><strong>Establishments</strong></caption>
+                                <tr><th>{this.state.year2}</th><th>{this.state.year}</th><th>Change</th></tr>
+                                <tr>
+                                    <td>{nf.format(indCounts[this.state.year2])}</td>
+                                    <td>{nf.format(indCounts[this.state.year])}</td>
+                                    <td>{nf.format(indCounts[this.state.year] - indCounts[this.state.year2])}</td>
+                                </tr>
+                            </table>
                         </div>
                     </div>
                     <div className="row">
-                        <div className="col-xs-4" style={style14}>
-                            <strong>Employment</strong>
-                        </div>
-                        <div className="col-xs-4" style={style14}>
-                            {nf.format(indEmp)}
-                        </div>
-                        <div className="col-xs-4" style={style14}>
-                            {nf.format(indEmpPer)}%
+                        <div className="col-xs-12">
+                            <table className="table">
+                                <caption><strong>Employment</strong></caption>
+                                <tr><th>{this.state.year2}</th><th>{this.state.year}</th><th>Change</th></tr>
+                                <tr>
+                                    <td>{nf.format(indEmps[this.state.year2])}</td>
+                                    <td>{nf.format(indEmps[this.state.year])}</td>
+                                    <td>{nf.format(indEmps[this.state.year] - indEmps[this.state.year2])}</td>
+                                </tr>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -417,12 +444,6 @@ var Header = React.createClass({
                     </div>
                 </div>
                 <div className="row">
-                    <div className="col-xs-4" style={style14}>
-                        <strong>Establishments</strong>
-                    </div>
-                    <div className="col-xs-8" style={style14}>
-                        {nf.format(estCounts[this.state.year])}
-                    </div>
                     <div className="col-xs-12" style={style14}>
                         <table className="table">
                             <caption><strong>Establishments</strong></caption>
@@ -493,7 +514,7 @@ var Header = React.createClass({
 
         return (
             <div className="container main">
-                <h1>Zip Business Patterns</h1>
+                <div className="page-header"><h1>Zip Business Patterns</h1></div>
                 <div className="row">
                     <div className="col-md-12">
                         <div id="nytg-tooltip">
@@ -517,7 +538,7 @@ var Header = React.createClass({
                             <g id="zip_group" />
                         </svg>
 
-                        <div style={{position: "fixed","top": 100,"left":40,width:330}}>
+                        <div style={{position: "fixed","top": 60,"left":40,width:330}}>
                             <div className="row">
 
                                 {this.renderControls()}
@@ -526,7 +547,7 @@ var Header = React.createClass({
                             </div>
                         </div>
 
-                        <div style={{position: "fixed","top": 100,"right":40,width:330}}>
+                        <div style={{position: "fixed","top": 60,"right":40,width:330}}>
                             <div className="row">
                                 <svg id="circleLegend" style={{width:300,height:200}} />
                             </div>
