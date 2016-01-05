@@ -92,38 +92,58 @@ var Header = React.createClass({
 
     updateYear(val) {
         console.log("Selected: " + val);
-
         this.setState({
             data: [],
             year: val,
-            laoding: true
+            loading: true
         });
-        this.getYearData();
+
+        this.getYearData("year");
+        // this.getYearData(yrCategory);
     },
 
-    getYearData() {
+    updateYear2(val) {
+        console.log("Selected: year2" + val);
+        this.setState({
+            data2: [],
+            year2: val
+        });
+
+        this.getYearData("year2");
+        // this.getYearData(yrCategory);
+    },
+
+    getYearData(yrCategory) {
         var scope = this,
             api = "http://zbp.availabs.org",
 
             fips = {
                 "type": "metro",
                 "code": this.state.metroFips
-            };
+            },
+            yr = yrCategory === "year" ? this.state.year : this.state.year2;
 
         d3.json(api+'/details')
-        .post(JSON.stringify({"fips":fips,"year":this.state.year}),function(err,response){
+        .post(JSON.stringify({"fips":fips,"year":yr}),function(err,response){
 
-            var data = scope.getCircleArray(response.data);
+            let data = scope.getCircleArray(response.data);
             sunburst.renderSunburst(data,scope.setNaics);
 
-            scope.setState({
+            let newState = {
+                dataEstEmp: data.reduce((a,b) => { return parseInt(a) + parseInt(b.radius) },0),
+                loading:false
+            }
+            newState[yrCategory] = data;
+            scope.setState(newState);
+
+            /*scope.setState({
                 dataEstEmp: data.reduce((a,b) => { return parseInt(a) + parseInt(b.radius) },0)
             });
 
             scope.setState({
                 data,
                 loading:false,
-            });
+            });*/
 
         });
     },
@@ -411,19 +431,6 @@ var Header = React.createClass({
         return (
             <div className="col-md-12">
                 <div className="row">
-                    <div className="col-xs-12" style={{textAlign:"center",padding:6,fontSize:16}}>
-                        <strong>
-
-                            <SelectBox
-                                name="metroarea"
-                                value={this.state.metroFips}
-                                options={metros}
-                                onChange={this.updateMetro}/>
-
-                        </strong>
-                    </div>
-                </div>
-                <div className="row">
                     <div className="col-xs-4" style={style14}>
                         <strong>Year</strong>
                     </div>
@@ -433,6 +440,18 @@ var Header = React.createClass({
                             value={this.state.year}
                             options={years}
                             onChange={this.updateYear}/>
+                    </div>
+                </div>
+                <div className="row">
+                    <div className="col-xs-4" style={style14}>
+                        <strong>Year</strong>
+                    </div>
+                    <div className="col-xs-8" style={style14}>
+                        <SelectBox
+                            name="datayear2"
+                            value={this.state.year2}
+                            options={years}
+                            onChange={this.updateYear2}/>
                     </div>
                 </div>
                 <div className="row">
@@ -514,7 +533,20 @@ var Header = React.createClass({
 
         return (
             <div className="container main">
-                <div className="page-header"><h1>Zip Business Patterns</h1></div>
+                <div className="page-header">
+                    <div className="row">
+                        <div className="col-md-4">
+                            <h2>Zip Business Patterns</h2>
+                        </div>
+                        <div className="col-md-8" id="selectWrapper">
+                            <SelectBox
+                                name="metroarea"
+                                value={this.state.metroFips}
+                                options={metros}
+                                onChange={this.updateMetro}/>
+                        </div>
+                    </div>
+                </div>
                 <div className="row">
                     <div className="col-md-12">
                         <div id="nytg-tooltip">

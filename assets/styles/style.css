@@ -6,8 +6,8 @@
              font-weight: normal;
              font-style: italic; }
 
-body { 
-       font-family: ETBembo, Palatino, "Palatino Linotype", "Palatino LT STD", "Book Antiqua", Georgia, serif; 
+body {
+       font-family: ETBembo, Palatino, "Palatino Linotype", "Palatino LT STD", "Book Antiqua", Georgia, serif;
 }
 */
 .rangeslider,
@@ -56,6 +56,17 @@ input[type='range'] {
 .leaflet-clickable {
   transition: fill 1s;
   /*not actually working*/
+}
+
+#selectWrapper {
+    height: 63.3px;
+}
+
+#selectWrapper div {
+    position: absolute;
+    bottom: 0;
+    height: 38.667px;
+    width: 100%;
 }
 
 #topNav {
@@ -128,13 +139,13 @@ input[type='range'] {
   background: rgba(255,255,255,0.9);
   color: #000;
   box-shadow: 0 1px 5px rgba(0,0,0,0.4);
-  -moz-box-shadow: 0 1px 5px rgba(0,0,0,0.4);  
+  -moz-box-shadow: 0 1px 5px rgba(0,0,0,0.4);
   border:1px solid rgba(200,200,200,0.85);
   text-align:center;
 }
 
 #nytg-tooltip {
- text-align:center;  
+ text-align:center;
   z-index: 1000;
   position: absolute;
   display: none;
@@ -156,7 +167,7 @@ input[type='range'] {
   font-size: 10px;
   margin-bottom: 2px;
   color:#666;
-  text-align:center;  
+  text-align:center;
 
 }
 #nytg-tooltip .nytg-rule{
@@ -169,15 +180,15 @@ input[type='range'] {
 #nytg-tooltip .nytg-discretion{
   color:#666;
 /*   text-transform:uppercase;*/
-  font-size: 11px;   
-  text-align:center;  
+  font-size: 11px;
+  text-align:center;
   font-style:italic;
 }
 #nytg-tooltip .nytg-name {
   text-align: left;
   font-size: 13px;
 /*  width:170px;*/
- text-align:center;  
+ text-align:center;
 }
 #nytg-tooltip .nytg-value {
 /*  position:absolute;*/
@@ -186,25 +197,25 @@ input[type='range'] {
   top:28px;
   font-size: 16px;
 /*  width:100px;*/
- text-align:center;  
+ text-align:center;
   overflow:hidden;
   font-weight:bold;
 }
 #nytg-tooltip .nytg-change {
   padding-left:10px;
 /*  width:110px;  */
-  font-size: 16px;  
-  text-align:right;  
+  font-size: 16px;
+  text-align:right;
   overflow:hidden;
 /*  position:absolute;*/
-  font-weight:bold;  
+  font-weight:bold;
   color:#666;
- text-align:center;  
+ text-align:center;
  display:inline;
 }
 #nytg-tooltip .nytg-valuesContainer {
   padding-top:7px;
-  
+
 }
 #nytg-tooltip.nytg-minus .nytg-change{
   color:#900;
@@ -488,3 +499,7 @@ input[type='range'] {
   to {
     -webkit-transform: rotate(1turn);
   }
+
+#selectWrapper {
+    position: relative;
+}
