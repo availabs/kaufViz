@@ -106,7 +106,8 @@ var Header = React.createClass({
         console.log("Selected: year2" + val);
         this.setState({
             data2: [],
-            year2: val
+            year2: val,
+            loading: true
         });
 
         this.getYearData("year2");
@@ -121,19 +122,20 @@ var Header = React.createClass({
                 "type": "metro",
                 "code": this.state.metroFips
             },
-            yr = yrCategory === "year" ? this.state.year : this.state.year2;
+            dataName = (yrCategory === "year" ? "data" : "data2");
 
         d3.json(api+'/details')
-        .post(JSON.stringify({"fips":fips,"year":yr}),function(err,response){
+        .post(JSON.stringify({"fips":fips,"year":this.state[yrCategory]}),function(err,response){
 
             let data = scope.getCircleArray(response.data);
-            sunburst.renderSunburst(data,scope.setNaics);
+            if(yrCategory === "year")
+                sunburst.renderSunburst(data,scope.setNaics);
 
             let newState = {
                 dataEstEmp: data.reduce((a,b) => { return parseInt(a) + parseInt(b.radius) },0),
                 loading:false
             }
-            newState[yrCategory] = data;
+            newState[dataName] = data;
             scope.setState(newState);
 
             /*scope.setState({
@@ -432,7 +434,7 @@ var Header = React.createClass({
             <div className="col-md-12">
                 <div className="row">
                     <div className="col-xs-4" style={style14}>
-                        <strong>Year</strong>
+                        <strong>Year 1</strong>
                     </div>
                     <div className="col-xs-8" style={style14}>
                         <SelectBox
@@ -444,7 +446,7 @@ var Header = React.createClass({
                 </div>
                 <div className="row">
                     <div className="col-xs-4" style={style14}>
-                        <strong>Year</strong>
+                        <strong>Year 2</strong>
                     </div>
                     <div className="col-xs-8" style={style14}>
                         <SelectBox
@@ -535,16 +537,13 @@ var Header = React.createClass({
             <div className="container main">
                 <div className="page-header">
                     <div className="row">
-                        <div className="col-md-4">
                             <h2>Zip Business Patterns</h2>
-                        </div>
-                        <div className="col-md-8" id="selectWrapper">
                             <SelectBox
                                 name="metroarea"
                                 value={this.state.metroFips}
                                 options={metros}
                                 onChange={this.updateMetro}/>
-                        </div>
+
                     </div>
                 </div>
                 <div className="row">
